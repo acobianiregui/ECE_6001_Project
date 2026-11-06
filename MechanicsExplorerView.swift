@@ -7,6 +7,10 @@ struct MechanicsExplorerView: View {
     @State private var inputRPM: Double = 90
     @State private var inputTorque: Double = 1
     @State private var turns: Double = 0
+    @State private var motorRunning = false
+    @State private var motorStart: Date?
+    @State private var motorTurns: Double = 0      // input turns accumulated by the motor
+    @State private var playbackSpeed: Double = 0.25
     @State private var prediction = "Slower"
     @State private var predictionChecked = false
     private var result: GearRatioResult {
@@ -54,8 +58,10 @@ struct MechanicsExplorerView: View {
             .padding(24)
         }
         .navigationTitle("3D Explorer")
-        .onChange(of: inputTeeth) { _, _ in predictionChecked = false; turns = 0 }
-        .onChange(of: outputTeeth) { _, _ in predictionChecked = false; turns = 0 }
+        .onChange(of: inputTeeth) { _, _ in predictionChecked = false; resetMotion() }
+        .onChange(of: outputTeeth) { _, _ in predictionChecked = false; resetMotion() }
+        .onChange(of: inputRPM) { _, _ in if motorRunning { foldMotorTurns(); motorStart = .now } }
+        .onChange(of: playbackSpeed) { _, _ in if motorRunning { foldMotorTurns(); motorStart = .now } }
     }
 
     private var gearLab: some View {
@@ -66,8 +72,32 @@ struct MechanicsExplorerView: View {
                     Spacer()
                     Text("One external gear pair").font(.caption).foregroundStyle(.secondary)
                 }
-                gearDiagram
-                Text("Drag the turn control to compare the motion. Shapes and tooth outlines are simplified.")
+                TimelineView(.animation(minimumInterval: 1.0 / 60, paused: !motorRunning)) { timeline in
+                    let input = totalInputTurns(at: timeline.date)
+                    VStack(alignment: .leading, spacing: 10) {
+                        gearDiagram(inputTurns: input)
+                        revolutionCounter(inputTurns: input)
+                    }
+                }
+                HStack(spacing: 14) {
+                    Button {
+                        if motorRunning { foldMotorTurns(); motorStart = nil } else { motorStart = .now }
+                        motorRunning.toggle()
+                    } label: {
+                        Label(motorRunning ? "Stop motor" : "Run motor", systemImage: motorRunning ? "stop.fill" : "play.fill")
+                            .contentTransition(.symbolEffect(.replace))
+                    }
+                    .buttonStyle(.borderedProminent).tint(motorRunning ? .red : .orange)
+                    Picker("Playback", selection: $playbackSpeed) {
+                        Text("¼× speed").tag(0.25)
+                        Text("½×").tag(0.5)
+                        Text("Real time").tag(1.0)
+                    }
+                    .pickerStyle(.segmented).frame(maxWidth: 320)
+                    Spacer(minLength: 0)
+                    Button("Reset", systemImage: "arrow.counterclockwise") { resetMotion() }.font(.caption)
+                }
+                Text("Run the motor or drag the turn control. Watch the counters: the output completes one turn for every \(String(format: "%.2f", result.ratio)) input turns. Tooth outlines are simplified.")
                     .font(.caption).foregroundStyle(.secondary)
                 HStack {
                     Text("Input turns").font(.subheadline)
@@ -112,15 +142,47 @@ struct MechanicsExplorerView: View {
         }
     }
 
-    private var gearDiagram: some View {
+    private func totalInputTurns(at date: Date) -> Double {
+        let live = motorStart.map { date.timeIntervalSince($0) * inputRPM / 60 * playbackSpeed } ?? 0
+        return turns + motorTurns + live
+    }
+    private func foldMotorTurns() {
+        if let start = motorStart { motorTurns += Date.now.timeIntervalSince(start) * inputRPM / 60 * playbackSpeed }
+    }
+    private func resetMotion() {
+        turns = 0
+        motorTurns = 0
+        motorStart = motorRunning ? .now : nil
+    }
+
+    private func revolutionCounter(inputTurns: Double) -> some View {
+        HStack(spacing: 18) {
+            Label(String(format: "Input %.2f rev", inputTurns), systemImage: "arrow.clockwise")
+                .foregroundStyle(.orange)
+            Label(String(format: "Output %.2f rev", inputTurns / result.ratio), systemImage: "arrow.counterclockwise")
+                .foregroundStyle(.mint)
+            Spacer(minLength: 0)
+            Text(String(format: "Power in %.1f W = out %.1f W", result.inputTorque * result.inputRPM * 2 * .pi / 60,
+                        result.outputTorque * result.outputRPM * 2 * .pi / 60))
+                .foregroundStyle(.secondary)
+        }
+        .font(.callout.monospacedDigit())
+        .accessibilityElement(children: .combine)
+    }
+
+    private func gearDiagram(inputTurns: Double) -> some View {
         GeometryReader { geometry in
             let total = Double(inputTeeth + outputTeeth)
             let scale = min(Double(geometry.size.width - 32) / total, 170 / Double(max(inputTeeth, outputTeeth)))
             let inputDiameter = CGFloat(Double(inputTeeth) * scale)
             let outputDiameter = CGFloat(Double(outputTeeth) * scale)
-            HStack(spacing: 0) {
-                gear(teeth: inputTeeth, color: .orange, diameter: inputDiameter, degrees: turns * 360)
-                gear(teeth: outputTeeth, color: .mint, diameter: outputDiameter, degrees: -turns * 360 / result.ratio)
+            // Phase the outlines so an input tooth sits in an output gap at the contact point,
+            // and overlap the rims by about one tooth depth so the pair visibly meshes.
+            let inputPhase = -135.0 / Double(inputTeeth)
+            let outputPhase = 180.0 - 315.0 / Double(outputTeeth)
+            HStack(spacing: -0.06 * (inputDiameter + outputDiameter) / 2) {
+                gear(teeth: inputTeeth, color: .orange, diameter: inputDiameter, degrees: inputPhase + inputTurns * 360)
+                gear(teeth: outputTeeth, color: .mint, diameter: outputDiameter, degrees: outputPhase - inputTurns * 360 / result.ratio)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
