@@ -1,181 +1,159 @@
 import SwiftUI
 
-struct HomeView: View {
-    enum Tab { case learn, cad, lab }
-    @State private var tab: Tab = .learn
+enum LearningDestination: String, CaseIterable, Identifiable {
+    case today, lessons, explorer, cad, lab, progress
+    var id: String { rawValue }
+    var title: String {
+        switch self {
+        case .today: "Today"
+        case .lessons: "Learning paths"
+        case .explorer: "3D explorer"
+        case .cad: "CAD studio"
+        case .lab: "Circuit lab"
+        case .progress: "My progress"
+        }
+    }
+    var symbol: String {
+        switch self {
+        case .today: "sun.max"
+        case .lessons: "books.vertical"
+        case .explorer: "cube.transparent"
+        case .cad: "square.stack.3d.up"
+        case .lab: "bolt.horizontal.circle"
+        case .progress: "chart.bar.xaxis"
+        }
+    }
+}
 
+struct HomeView: View {
+    @Environment(LearningStore.self) private var learning
     @Environment(SpaceController.self) private var spaces
+    @Environment(\.openWindow) private var openWindow
     @Environment(\.openImmersiveSpace) private var openSpace
     @Environment(\.dismissImmersiveSpace) private var dismissSpace
+    @State private var destination: LearningDestination = .today
+    @State private var selectedLesson: Lesson?
+    @State private var reviewing = false
 
     var body: some View {
-        TabView(selection: $tab) {
-            LearnTab()
-                .tabItem { Label("Explore", systemImage: "gearshape.2") }
-                .tag(Tab.learn)
-            CADPanel(toggleSpace: toggle)
-                .tabItem { Label("CAD Studio", systemImage: "cube") }
-                .tag(Tab.cad)
-            LabPanel(toggleSpace: toggle)
-                .tabItem { Label("Virtual Lab", systemImage: "flask") }
-                .tag(Tab.lab)
+        NavigationSplitView {
+            sidebar
+                .navigationSplitViewColumnWidth(min: 210, ideal: 230, max: 260)
+        } detail: {
+            NavigationStack {
+                switch destination {
+                case .today:
+                    TodayView(openLesson: { selectedLesson = $0 }, openDestination: { destination = $0 }, review: { reviewing = true })
+                case .lessons:
+                    LearningPathsView(openLesson: { selectedLesson = $0 })
+                case .explorer:
+                    MechanicsExplorerView()
+                case .cad:
+                    CADStudioView(toggleSpace: toggle)
+                case .lab:
+                    CircuitLabView(toggleSpace: toggle)
+                case .progress:
+                    LearningProgressView(openLesson: { selectedLesson = $0 }, review: { reviewing = true })
+                }
+            }
         }
+        .tint(LearningStyle.teal)
+        .preferredColorScheme(.dark)
+        .frame(minWidth: 960, minHeight: 650)
+        .sheet(item: $selectedLesson) { lesson in
+            LessonDetailView(lesson: lesson, openActivity: launchActivity)
+                .frame(minWidth: 720, idealWidth: 800, minHeight: 620, idealHeight: 760)
+        }
+        .sheet(isPresented: $reviewing) {
+            ReviewSessionView().frame(minWidth: 680, idealWidth: 740, minHeight: 600, idealHeight: 700)
+        }
+        .alert("Couldn’t open the workspace", isPresented: Binding(get: { spaces.error != nil }, set: { if !$0 { spaces.error = nil } })) {
+            Button("OK") { spaces.error = nil }
+        } message: { Text(spaces.error ?? "Please try again.") }
     }
 
-    /// Enter or leave an immersive space. Only one can be open at a time.
+    private var sidebar: some View {
+        VStack(alignment: .leading, spacing: 26) {
+            HStack(spacing: 12) {
+                Image(systemName: "graduationcap.fill")
+                    .font(.title2).foregroundStyle(LearningStyle.teal)
+                    .frame(width: 46, height: 46)
+                    .background(LearningStyle.teal.opacity(0.13), in: RoundedRectangle(cornerRadius: 14))
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("AVP Learn").font(.title3.bold())
+                    Text("ENGINEERING STUDIO").font(.system(size: 9, weight: .semibold)).tracking(1.2).foregroundStyle(.secondary)
+                }
+            }
+            .padding(.top, 12)
+            VStack(spacing: 6) {
+                ForEach(LearningDestination.allCases) { item in
+                    Button { destination = item } label: {
+                        HStack(spacing: 12) {
+                            Image(systemName: item.symbol).frame(width: 22)
+                            Text(item.title).font(.subheadline.weight(destination == item ? .semibold : .regular))
+                            Spacer(minLength: 0)
+                            if item == .progress && !learning.dueQuestions.isEmpty {
+                                Text("\(learning.dueQuestions.count)").font(.caption2.bold()).padding(5).background(.orange.opacity(0.2), in: Circle())
+                            }
+                        }
+                        .foregroundStyle(destination == item ? LearningStyle.teal : .white.opacity(0.75))
+                        .padding(.horizontal, 14).padding(.vertical, 13)
+                        .background(destination == item ? LearningStyle.teal.opacity(0.13) : .clear, in: RoundedRectangle(cornerRadius: 13))
+                        .contentShape(RoundedRectangle(cornerRadius: 13))
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityAddTraits(destination == item ? .isSelected : [])
+                }
+            }
+            Spacer(minLength: 12)
+            if let active = spaces.active {
+                Button { toggle(active) } label: {
+                    Label(spaces.isTransitioning ? "Changing workspace…" : "Leave \(active == "cad" ? "CAD space" : "lab space")", systemImage: "visionpro")
+                        .font(.caption)
+                }.disabled(spaces.isTransitioning)
+            }
+            VStack(alignment: .leading, spacing: 10) {
+                HStack {
+                    Text("Your learning journey").font(.caption.weight(.semibold))
+                    Spacer()
+                    Text("\(learning.completedCount)/9").font(.caption).foregroundStyle(.secondary)
+                }
+                ProgressView(value: learning.completionFraction)
+                Text("Learn a little. Build something.").font(.caption2).foregroundStyle(.secondary)
+            }.padding(14).background(.white.opacity(0.04), in: RoundedRectangle(cornerRadius: 14))
+        }
+        .padding(18)
+    }
+
+    private func launchActivity(_ activity: LearningActivity) {
+        selectedLesson = nil
+        switch activity {
+        case .circuit: destination = .lab
+        case .cad: destination = .cad
+        case .piston: openWindow(id: "system", value: "piston")
+        case .gears: openWindow(id: "system", value: "gears")
+        }
+    }
     private func toggle(_ id: String) {
-        Task {
+        guard !spaces.isTransitioning else { return }
+        spaces.isTransitioning = true
+        Task { @MainActor in
+            defer { spaces.isTransitioning = false }
             if spaces.active == id {
                 await dismissSpace()
-            } else {
-                if spaces.active != nil { await dismissSpace() }
-                await openSpace(id: id)
+                spaces.active = nil
+                return
             }
-        }
-    }
-}
-
-// MARK: - Explore tab
-
-struct LearnTab: View {
-    @Environment(\.openWindow) private var openWindow
-
-    var body: some View {
-        NavigationStack {
-            List(EngSystem.library) { system in
-                HStack(spacing: 16) {
-                    Image(systemName: "cube.transparent")
-                        .font(.largeTitle)
-                        .frame(width: 56)
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text(system.title).font(.headline)
-                        Text(system.summary).font(.subheadline).foregroundStyle(.secondary)
-                    }
-                    Spacer()
-                    Button("Open in 3D") { openWindow(id: "system", value: system.id) }
-                }
-                .padding(.vertical, 8)
+            if spaces.active != nil {
+                await dismissSpace()
+                spaces.active = nil
             }
-            .navigationTitle("AVP Learn")
-        }
-    }
-}
-
-// MARK: - CAD tab
-
-struct CADPanel: View {
-    @Environment(CADModel.self) private var cad
-    @Environment(SpaceController.self) private var spaces
-    let toggleSpace: (String) -> Void
-
-    var body: some View {
-        @Bindable var cad = cad
-        NavigationStack {
-            ScrollView {
-                VStack(alignment: .leading, spacing: 20) {
-                    Button {
-                        toggleSpace("cad")
-                    } label: {
-                        Label(spaces.active == "cad" ? "Leave Workspace" : "Enter 3D Workspace",
-                              systemImage: spaces.active == "cad" ? "xmark.circle" : "visionpro")
-                    }
-                    .buttonStyle(.borderedProminent)
-
-                    // Coach
-                    Label(cad.coachTip, systemImage: "lightbulb")
-                        .padding()
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 16))
-
-                    Text("Add a shape").font(.headline)
-                    HStack {
-                        ForEach(ShapeKind.allCases) { kind in
-                            Button { cad.add(kind) } label: {
-                                VStack { Image(systemName: kind.icon).font(.title2); Text(kind.label).font(.caption) }
-                                    .frame(maxWidth: .infinity)
-                            }
-                        }
-                    }
-
-                    Toggle("Snap to 5 cm grid", isOn: $cad.snapEnabled)
-
-                    if let s = cad.selected {
-                        Text("Selected: \(s.kind.label)").font(.headline)
-                        Text(String(format: "Size: %.1f cm   Height above plane: %.0f cm",
-                                    s.sizeCM, s.position.y * 100))
-                            .foregroundStyle(.secondary)
-                        Slider(value: Binding(get: { s.scale },
-                                              set: { cad.setScale(s.id, $0) }),
-                               in: 0.25...6) { editing in if editing { cad.beginEdit() } }
-                        HStack {
-                            ForEach(0..<CADPalette.hues.count, id: \.self) { i in
-                                Button { cad.setColor(i) } label: {
-                                    Circle().fill(Color(CADPalette.color(i, selected: false)))
-                                        .frame(width: 28, height: 28)
-                                }.buttonStyle(.plain)
-                            }
-                        }
-                        HStack {
-                            Button("Duplicate") { cad.duplicateSelected() }
-                            Button("Delete", role: .destructive) { cad.deleteSelected() }
-                        }
-                    }
-
-                    HStack {
-                        Button("Undo") { cad.undo() }.disabled(!cad.canUndo)
-                        Button("Clear All", role: .destructive) { cad.clear() }.disabled(cad.shapes.isEmpty)
-                    }
-                }
-                .padding()
+            switch await openSpace(id: id) {
+            case .opened: spaces.active = id
+            case .userCancelled: break
+            case .error: spaces.error = "The immersive workspace isn’t available right now. You can keep using the window tools and try again later."
+            @unknown default: spaces.error = "Xcode or visionOS returned an unexpected result. Please try again."
             }
-            .navigationTitle("CAD Studio")
-        }
-    }
-}
-
-// MARK: - Lab tab
-
-struct LabPanel: View {
-    @Environment(LabModel.self) private var lab
-    @Environment(SpaceController.self) private var spaces
-    let toggleSpace: (String) -> Void
-
-    var body: some View {
-        NavigationStack {
-            VStack(alignment: .leading, spacing: 18) {
-                Text("Lab 1: Build a current-limited LED circuit").font(.title3)
-
-                Button {
-                    toggleSpace("lab")
-                } label: {
-                    Label(spaces.active == "lab" ? "Leave Lab" : "Enter Virtual Lab",
-                          systemImage: spaces.active == "lab" ? "xmark.circle" : "visionpro")
-                }
-                .buttonStyle(.borderedProminent)
-
-                if lab.finished {
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("Lab complete").font(.title2)
-                        Text("Score: \(lab.score)/100 · Mistakes: \(lab.mistakes)")
-                        Text(lab.score >= 80 ? "You're ready for the physical lab." : "Run it again to tighten up your procedure.")
-                            .foregroundStyle(.secondary)
-                        Button("Restart") { lab.reset() }
-                    }
-                    .padding().background(.thinMaterial, in: RoundedRectangle(cornerRadius: 16))
-                } else if let step = lab.current {
-                    Text("Step \(lab.stepIndex + 1) of \(LabModel.steps.count)").foregroundStyle(.secondary)
-                    Text(step.instruction).font(.title2)
-                    ProgressView(value: Double(lab.stepIndex), total: Double(LabModel.steps.count))
-                }
-
-                Text(lab.feedback)
-                    .padding().frame(maxWidth: .infinity, alignment: .leading)
-                    .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 16))
-
-                Spacer()
-            }
-            .padding()
-            .navigationTitle("Virtual Lab")
         }
     }
 }

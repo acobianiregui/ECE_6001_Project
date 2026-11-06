@@ -1,39 +1,55 @@
 # AVP Learn
 
-An Apple Vision Pro app for engineering students (visionOS 2+, SwiftUI + RealityKit).
+A native Apple Vision Pro learning studio for introductory engineering. Built with SwiftUI, RealityKit, and Observation for visionOS 2.0 or newer. No external packages, account, or network connection is required for the learning activities.
 
-## What's in the app
+## Learning experience
 
-| Feature | Where | What it does |
-|---|---|---|
-| **3D system explorer** | `SystemExplorerView.swift` | Volumetric window with an exploded-view piston/crank assembly and a gear train. Slider explodes the model; tap a part to read what it does. |
-| **Beginner CAD studio** | `CADSpaceView.swift`, `CADPanel` in `HomeView.swift` | Immersive workplane. Add primitives, pinch-drag to move, two-hand pinch to resize, snap-to-grid, undo, duplicate, live size readout, and a coach that explains next steps in plain language. |
-| **Virtual lab** | `LabSpaceView.swift`, `LabModel` in `Models.swift` | Guided LED-circuit lab on a virtual bench. Steps must be done in a safe order; mistakes cost points and trigger explanations; ends with a readiness score. |
+- **Today:** resume a lesson, choose a learning path, and see practice and review progress.
+- **Learning paths:** nine lessons covering circuits, mechanics, and spatial design. Each includes a clear goal, a labeled visual, two short explanations, a named equation, a worked example, three reasoning questions, hints, and a practical activity.
+- **Practice and review:** 27 questions with explanations, saved in-progress quiz answers, best scores, and reviews scheduled after 1, 3, 7, and 14 days of successful recall when due. Immediate repeats retain the scheduled date; mistakes return to the review queue. A lesson is complete after reading and a three-of-three quiz run.
+- **Study journal:** saved lessons, automatic notes, a searchable 19-term glossary, primary reference links, and sharing notes/results as text.
+- **CAD studio:** editable 3D workplane inside the main window or at life size. Five primitives including a hollow tube; named shaft-support and angle-bracket starters; independent dimensions and XYZ rotation; millimetre/centimetre readouts; four grid spacings; isometric/front/top/right views; dimension labels; lock/hide; alignment and stacking; undo/redo; autosaved work; six named snapshots; OBJ mesh export; and dimension-checked design challenges.
+- **Circuit lab:** a six-step guided procedure with explanations and a window-based bench. Experiment with supply voltage, resistance, power switch, and LED direction; inspect current, resistor voltage, and power; answer prediction questions. An optional immersive bench uses the same procedure state.
+- **3D explorer:** inspect and explode piston and gear assemblies, identify parts by selecting the actual 3D objects, and explore ideal gear speed, torque, and direction using an adjustable gear-pair playground.
+- **My progress:** track completed lessons, distinct questions practiced, active study days, earned milestones, activity results, and upcoming review. Progress can be reset independently of CAD designs.
 
-## Set up in Xcode
+All learning records and designs are stored locally using UserDefaults. There is no cloud synchronization. Guided assembly state and current model selections are session state; circuit experiment settings and completed activity results persist. Undo history is session-only, while the current CAD design and named snapshots persist.
 
-1. Xcode 16+ → **File ▸ New ▸ Project ▸ visionOS ▸ App**. Name it `AVPLearn`, Initial Scene: **Window**, Immersive Space Renderer: **None**.
-2. Delete the generated `*App.swift`, `ContentView.swift`, and any generated immersive files.
-3. Drag all `.swift` files from this folder into the project.
-4. In the target's Info tab, set **Preferred Default Scene Session Role** to *Application Session Role* (the default) and add `UIApplicationSupportsMultipleScenes = YES`.
-5. Run on the Apple Vision Pro simulator or a device.
+## Open and run
 
-I wrote this without access to Xcode, so it hasn't been compiled. Expect a few small API-signature fixes on first build.
+1. Open `AVPLearn.xcodeproj` in Xcode 16 or newer with the visionOS SDK installed.
+2. Select the **AVPLearn** scheme and an **Apple Vision Pro simulator**. Install a visionOS simulator runtime through Xcode Settings if needed.
+3. Press **⌘R**.
 
-## Business case: why students pay a higher technology fee
+The main window opens at 1180 × 820 points. Lessons, quizzes, notes, CAD controls, circuit controls, and the gear playground are usable in a regular window. 3D assembly selection uses a volumetric window. Life-size CAD and the lab bench use mixed immersive spaces.
 
-- **Replaces physical lab time and consumables.** Students can rehearse before entering a real lab, which reduces damaged equipment, repeat sessions, and safety incidents.
-- **Lowers the barrier to CAD.** Beginners learn spatial reasoning with their hands instead of a mouse and menus.
-- **Makes abstract systems tangible.** Exploded views and cutaways teach assemblies faster than 2D diagrams.
-- **Access without scheduling.** Labs can be practiced off-hours and off-campus (with a headset checkout program).
+For a physical Apple Vision Pro, select your development team in **Signing & Capabilities** and choose an available bundle identifier. The default is `edu.ece6001.AVPLearn`. This development project does not include a custom app icon.
 
-Suggested pricing model to test: a per-student campus license added to the technology fee (e.g., $40–$90/semester), plus a department tier for lab-content packs. Validate willingness to pay with a pilot in one intro course (Statics, Circuits, or Engineering Graphics) and measure lab pass rates, lab-session reschedules, and CAD-course grades against a control section.
+### Build from Terminal
 
-## Roadmap
+```sh
+xcodebuild -project AVPLearn.xcodeproj \
+  -scheme AVPLearn \
+  -configuration Debug \
+  -destination 'generic/platform=visionOS Simulator' \
+  -derivedDataPath build \
+  CODE_SIGNING_ALLOWED=NO build
+```
 
-- Boolean operations (union/subtract/intersect), sketch-and-extrude, and STEP/USDZ export
-- Instructor dashboard: assign labs, view scores and common mistakes
-- More lab packs: multimeter measurements, tensile testing, fluid flow, soldering
-- Real USDZ part models and physics-based simulation of the systems
-- SharePlay for team design and TA-led lab sessions
-- LMS integration (Canvas, Blackboard) and campus SSO
+Use `generic/platform=visionOS` for a device-targeted compile. The shared scheme also includes Release and archive configurations.
+
+### Model checks
+
+On a Mac with Xcode and Python 3 installed:
+
+```sh
+bash Tests/run_checks.sh
+```
+
+These executable checks exercise actual application models with isolated storage: curriculum integrity, scoring, persistence, completion rules, review scheduling, study-day streaks, circuit calculations and procedure ordering, CAD constraints and history, gear relationships, and exported mesh topology, normals, transforms, and hidden-part exclusion. They do not replace simulator or headset interaction testing. See `TESTING.md` for a short manual walkthrough.
+
+## Model boundaries
+
+The circuit model assumes ideal wires/battery and a fixed 2 V forward LED drop, with an illustrative 20 mA LED limit and 0.25 W resistor. It does not model component tolerances, temperature, leakage, or reverse breakdown. Gear relationships assume an ideal, lossless external pair with equal tooth size. The 3D assemblies and tooth outlines are simplified educational geometry. CAD provides dimensional primitive assemblies, including rotation and proportional gesture resizing. Tubes have actual hollow geometry. Alignment/stacking use conservative rotated bounding boxes, without persistent mates or a collision solver. OBJ exports visible triangle meshes in metres; it does not export STEP solids or a manufacturing-ready part. Boolean operations and arbitrary model import are not included. Practice scores describe performance within this app.
+
+Primary educational references are linked in the glossary and activity views. Learning content and questions are original explanations; the app has no external content download requirement.
