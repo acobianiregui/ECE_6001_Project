@@ -5,6 +5,7 @@ struct AVPLearnApp: App {
     @State private var cad = CADModel()
     @State private var lab = LabModel()
     @State private var spaces = SpaceController()
+    @State private var learning = LearningStore()
 
     var body: some Scene {
         // Main control window
@@ -13,12 +14,14 @@ struct AVPLearnApp: App {
                 .environment(cad)
                 .environment(lab)
                 .environment(spaces)
+                .environment(learning)
         }
-        .defaultSize(width: 900, height: 700)
+        .defaultSize(width: 1180, height: 820)
 
         // Volumetric window: explore a mechanical system in 3D
         WindowGroup(id: "system", for: String.self) { $systemID in
             SystemExplorerView(systemID: systemID ?? EngSystem.pistonAssembly.id)
+                .environment(learning)
         }
         .windowStyle(.volumetric)
         .defaultSize(width: 0.6, height: 0.6, depth: 0.6, in: .meters)
@@ -28,7 +31,7 @@ struct AVPLearnApp: App {
             CADSpaceView()
                 .environment(cad)
                 .onAppear { spaces.active = "cad" }
-                .onDisappear { spaces.active = nil }
+                .onDisappear { if spaces.active == "cad" { spaces.active = nil } }
         }
 
         // Immersive virtual lab bench
@@ -36,7 +39,7 @@ struct AVPLearnApp: App {
             LabSpaceView()
                 .environment(lab)
                 .onAppear { spaces.active = "lab" }
-                .onDisappear { spaces.active = nil }
+                .onDisappear { if spaces.active == "lab" { spaces.active = nil } }
         }
     }
 }

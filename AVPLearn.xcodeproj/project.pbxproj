@@ -1,0 +1,300 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {};
+	objectVersion = 56;
+	objects = {
+		B20000000000000000000001 /* AVPLearnApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000001 /* AVPLearnApp.swift */; };
+		B20000000000000000000002 /* CADExport.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000002 /* CADExport.swift */; };
+		B20000000000000000000003 /* CADMeshLibrary.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000003 /* CADMeshLibrary.swift */; };
+		B20000000000000000000004 /* CADModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000004 /* CADModels.swift */; };
+		B20000000000000000000005 /* CADSpaceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000005 /* CADSpaceView.swift */; };
+		B20000000000000000000006 /* CADStudioView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000006 /* CADStudioView.swift */; };
+		B20000000000000000000007 /* CADTemplates.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000007 /* CADTemplates.swift */; };
+		B20000000000000000000008 /* CircuitLabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000008 /* CircuitLabView.swift */; };
+		B20000000000000000000009 /* ConceptDiagramView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000009 /* ConceptDiagramView.swift */; };
+		B2000000000000000000000A /* Curriculum.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1000000000000000000000A /* Curriculum.swift */; };
+		B2000000000000000000000B /* DashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1000000000000000000000B /* DashboardView.swift */; };
+		B2000000000000000000000C /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1000000000000000000000C /* HomeView.swift */; };
+		B2000000000000000000000D /* LabModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1000000000000000000000D /* LabModels.swift */; };
+		B2000000000000000000000E /* LabSpaceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1000000000000000000000E /* LabSpaceView.swift */; };
+		B2000000000000000000000F /* LearningProgressView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1000000000000000000000F /* LearningProgressView.swift */; };
+		B20000000000000000000010 /* LearningStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000010 /* LearningStore.swift */; };
+		B20000000000000000000011 /* LearningStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000011 /* LearningStyle.swift */; };
+		B20000000000000000000012 /* LearningTypes.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000012 /* LearningTypes.swift */; };
+		B20000000000000000000013 /* LessonDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000013 /* LessonDetailView.swift */; };
+		B20000000000000000000014 /* MechanicsExplorerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000014 /* MechanicsExplorerView.swift */; };
+		B20000000000000000000015 /* MechanicsModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000015 /* MechanicsModel.swift */; };
+		B20000000000000000000016 /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000016 /* Models.swift */; };
+		B20000000000000000000017 /* SystemExplorerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000017 /* SystemExplorerView.swift */; };
+		B10000000000000000000001 /* AVPLearnApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AVPLearnApp.swift; sourceTree = "<group>"; };
+		B10000000000000000000002 /* CADExport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CADExport.swift; sourceTree = "<group>"; };
+		B10000000000000000000003 /* CADMeshLibrary.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CADMeshLibrary.swift; sourceTree = "<group>"; };
+		B10000000000000000000004 /* CADModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CADModels.swift; sourceTree = "<group>"; };
+		B10000000000000000000005 /* CADSpaceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CADSpaceView.swift; sourceTree = "<group>"; };
+		B10000000000000000000006 /* CADStudioView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CADStudioView.swift; sourceTree = "<group>"; };
+		B10000000000000000000007 /* CADTemplates.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CADTemplates.swift; sourceTree = "<group>"; };
+		B10000000000000000000008 /* CircuitLabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CircuitLabView.swift; sourceTree = "<group>"; };
+		B10000000000000000000009 /* ConceptDiagramView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConceptDiagramView.swift; sourceTree = "<group>"; };
+		B1000000000000000000000A /* Curriculum.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Curriculum.swift; sourceTree = "<group>"; };
+		B1000000000000000000000B /* DashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardView.swift; sourceTree = "<group>"; };
+		B1000000000000000000000C /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
+		B1000000000000000000000D /* LabModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LabModels.swift; sourceTree = "<group>"; };
+		B1000000000000000000000E /* LabSpaceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LabSpaceView.swift; sourceTree = "<group>"; };
+		B1000000000000000000000F /* LearningProgressView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LearningProgressView.swift; sourceTree = "<group>"; };
+		B10000000000000000000010 /* LearningStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LearningStore.swift; sourceTree = "<group>"; };
+		B10000000000000000000011 /* LearningStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LearningStyle.swift; sourceTree = "<group>"; };
+		B10000000000000000000012 /* LearningTypes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LearningTypes.swift; sourceTree = "<group>"; };
+		B10000000000000000000013 /* LessonDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LessonDetailView.swift; sourceTree = "<group>"; };
+		B10000000000000000000014 /* MechanicsExplorerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MechanicsExplorerView.swift; sourceTree = "<group>"; };
+		B10000000000000000000015 /* MechanicsModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MechanicsModel.swift; sourceTree = "<group>"; };
+		B10000000000000000000016 /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
+		B10000000000000000000017 /* SystemExplorerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemExplorerView.swift; sourceTree = "<group>"; };
+
+        A10000000000000000000010 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+        A10000000000000000000011 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
+        A10000000000000000000012 /* AVPLearn.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = AVPLearn.app; sourceTree = BUILT_PRODUCTS_DIR; };
+        A30000000000000000000001 = {
+            isa = PBXGroup;
+            children = (
+
+                B10000000000000000000001 /* AVPLearnApp.swift */,
+                B10000000000000000000002 /* CADExport.swift */,
+                B10000000000000000000003 /* CADMeshLibrary.swift */,
+                B10000000000000000000004 /* CADModels.swift */,
+                B10000000000000000000005 /* CADSpaceView.swift */,
+                B10000000000000000000006 /* CADStudioView.swift */,
+                B10000000000000000000007 /* CADTemplates.swift */,
+                B10000000000000000000008 /* CircuitLabView.swift */,
+                B10000000000000000000009 /* ConceptDiagramView.swift */,
+                B1000000000000000000000A /* Curriculum.swift */,
+                B1000000000000000000000B /* DashboardView.swift */,
+                B1000000000000000000000C /* HomeView.swift */,
+                B1000000000000000000000D /* LabModels.swift */,
+                B1000000000000000000000E /* LabSpaceView.swift */,
+                B1000000000000000000000F /* LearningProgressView.swift */,
+                B10000000000000000000010 /* LearningStore.swift */,
+                B10000000000000000000011 /* LearningStyle.swift */,
+                B10000000000000000000012 /* LearningTypes.swift */,
+                B10000000000000000000013 /* LessonDetailView.swift */,
+                B10000000000000000000014 /* MechanicsExplorerView.swift */,
+                B10000000000000000000015 /* MechanicsModel.swift */,
+                B10000000000000000000016 /* Models.swift */,
+                B10000000000000000000017 /* SystemExplorerView.swift */,
+
+                A10000000000000000000010 /* Info.plist */,
+                A10000000000000000000011 /* README.md */,
+                A30000000000000000000002 /* Products */,
+            );
+            sourceTree = "<group>";
+        };
+        A30000000000000000000002 /* Products */ = {
+            isa = PBXGroup;
+            children = (A10000000000000000000012 /* AVPLearn.app */,);
+            name = Products;
+            sourceTree = "<group>";
+        };
+        A40000000000000000000001 /* Sources */ = {
+            isa = PBXSourcesBuildPhase;
+            buildActionMask = 2147483647;
+            files = (
+
+                B20000000000000000000001 /* AVPLearnApp.swift in Sources */,
+                B20000000000000000000002 /* CADExport.swift in Sources */,
+                B20000000000000000000003 /* CADMeshLibrary.swift in Sources */,
+                B20000000000000000000004 /* CADModels.swift in Sources */,
+                B20000000000000000000005 /* CADSpaceView.swift in Sources */,
+                B20000000000000000000006 /* CADStudioView.swift in Sources */,
+                B20000000000000000000007 /* CADTemplates.swift in Sources */,
+                B20000000000000000000008 /* CircuitLabView.swift in Sources */,
+                B20000000000000000000009 /* ConceptDiagramView.swift in Sources */,
+                B2000000000000000000000A /* Curriculum.swift in Sources */,
+                B2000000000000000000000B /* DashboardView.swift in Sources */,
+                B2000000000000000000000C /* HomeView.swift in Sources */,
+                B2000000000000000000000D /* LabModels.swift in Sources */,
+                B2000000000000000000000E /* LabSpaceView.swift in Sources */,
+                B2000000000000000000000F /* LearningProgressView.swift in Sources */,
+                B20000000000000000000010 /* LearningStore.swift in Sources */,
+                B20000000000000000000011 /* LearningStyle.swift in Sources */,
+                B20000000000000000000012 /* LearningTypes.swift in Sources */,
+                B20000000000000000000013 /* LessonDetailView.swift in Sources */,
+                B20000000000000000000014 /* MechanicsExplorerView.swift in Sources */,
+                B20000000000000000000015 /* MechanicsModel.swift in Sources */,
+                B20000000000000000000016 /* Models.swift in Sources */,
+                B20000000000000000000017 /* SystemExplorerView.swift in Sources */,
+
+            );
+            runOnlyForDeploymentPostprocessing = 0;
+        };
+        A40000000000000000000002 /* Frameworks */ = {
+            isa = PBXFrameworksBuildPhase;
+            buildActionMask = 2147483647;
+            files = ();
+            runOnlyForDeploymentPostprocessing = 0;
+        };
+        A40000000000000000000003 /* Resources */ = {
+            isa = PBXResourcesBuildPhase;
+            buildActionMask = 2147483647;
+            files = ();
+            runOnlyForDeploymentPostprocessing = 0;
+        };
+        A50000000000000000000001 /* AVPLearn */ = {
+            isa = PBXNativeTarget;
+            buildConfigurationList = A80000000000000000000002;
+            buildPhases = (
+                A40000000000000000000001 /* Sources */,
+                A40000000000000000000002 /* Frameworks */,
+                A40000000000000000000003 /* Resources */,
+            );
+            buildRules = ();
+            dependencies = ();
+            name = AVPLearn;
+            productName = AVPLearn;
+            productReference = A10000000000000000000012 /* AVPLearn.app */;
+            productType = "com.apple.product-type.application";
+        };
+        A60000000000000000000001 /* Project object */ = {
+            isa = PBXProject;
+            attributes = {
+                BuildIndependentTargetsInParallel = YES;
+                LastSwiftUpdateCheck = 1600;
+                LastUpgradeCheck = 1600;
+                TargetAttributes = {
+                    A50000000000000000000001 = {CreatedOnToolsVersion = 16.0; };
+                };
+            };
+            buildConfigurationList = A80000000000000000000001;
+            compatibilityVersion = "Xcode 14.0";
+            developmentRegion = en;
+            hasScannedForEncodings = 0;
+            knownRegions = (en, Base,);
+            mainGroup = A30000000000000000000001;
+            productRefGroup = A30000000000000000000002 /* Products */;
+            projectDirPath = "";
+            projectRoot = "";
+            targets = (A50000000000000000000001 /* AVPLearn */,);
+        };
+
+        A70000000000000000000001 /* Debug */ = {
+            isa = XCBuildConfiguration;
+            buildSettings = {
+                ALWAYS_SEARCH_USER_PATHS = NO;
+                CLANG_ENABLE_MODULES = YES;
+                CLANG_ENABLE_OBJC_ARC = YES;
+                CLANG_WARN_BOOL_CONVERSION = YES;
+                CLANG_WARN_CONSTANT_CONVERSION = YES;
+                CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+                CLANG_WARN_EMPTY_BODY = YES;
+                CLANG_WARN_ENUM_CONVERSION = YES;
+                CLANG_WARN_INT_CONVERSION = YES;
+                CLANG_WARN_UNREACHABLE_CODE = YES;
+                COPY_PHASE_STRIP = NO;
+                DEBUG_INFORMATION_FORMAT = dwarf;
+                ENABLE_TESTABILITY = YES;
+                GCC_C_LANGUAGE_STANDARD = gnu17;
+                GCC_NO_COMMON_BLOCKS = YES;
+                GCC_OPTIMIZATION_LEVEL = 0;
+                GCC_PREPROCESSOR_DEFINITIONS = ("DEBUG=1", "$(inherited)",);
+                GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+                GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+                GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+                GCC_WARN_UNUSED_FUNCTION = YES;
+                GCC_WARN_UNUSED_VARIABLE = YES;
+                ONLY_ACTIVE_ARCH = YES;
+                SDKROOT = xros;
+                SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+                SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+                SWIFT_STRICT_CONCURRENCY = targeted;
+                SWIFT_VERSION = 5.0;
+                XROS_DEPLOYMENT_TARGET = 2.0;
+            };
+            name = Debug;
+        };
+        A70000000000000000000002 /* Release */ = {
+            isa = XCBuildConfiguration;
+            buildSettings = {
+                ALWAYS_SEARCH_USER_PATHS = NO;
+                CLANG_ENABLE_MODULES = YES;
+                CLANG_ENABLE_OBJC_ARC = YES;
+                CLANG_WARN_BOOL_CONVERSION = YES;
+                CLANG_WARN_CONSTANT_CONVERSION = YES;
+                CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+                CLANG_WARN_EMPTY_BODY = YES;
+                CLANG_WARN_ENUM_CONVERSION = YES;
+                CLANG_WARN_INT_CONVERSION = YES;
+                CLANG_WARN_UNREACHABLE_CODE = YES;
+                COPY_PHASE_STRIP = NO;
+                DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+                GCC_C_LANGUAGE_STANDARD = gnu17;
+                GCC_NO_COMMON_BLOCKS = YES;
+                GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+                GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+                GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+                GCC_WARN_UNUSED_FUNCTION = YES;
+                GCC_WARN_UNUSED_VARIABLE = YES;
+                SDKROOT = xros;
+                SWIFT_COMPILATION_MODE = wholemodule;
+                SWIFT_OPTIMIZATION_LEVEL = "-O";
+                SWIFT_STRICT_CONCURRENCY = targeted;
+                SWIFT_VERSION = 5.0;
+                VALIDATE_PRODUCT = YES;
+                XROS_DEPLOYMENT_TARGET = 2.0;
+            };
+            name = Release;
+        };
+        A70000000000000000000003 /* Debug */ = {
+            isa = XCBuildConfiguration;
+            buildSettings = {
+                CODE_SIGN_STYLE = Automatic;
+                CURRENT_PROJECT_VERSION = 1;
+                ENABLE_PREVIEWS = YES;
+                GENERATE_INFOPLIST_FILE = NO;
+                INFOPLIST_FILE = Info.plist;
+                LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+                MARKETING_VERSION = 1.0;
+                PRODUCT_BUNDLE_IDENTIFIER = edu.ece6001.AVPLearn;
+                PRODUCT_NAME = "$(TARGET_NAME)";
+                SUPPORTED_PLATFORMS = "xros xrsimulator";
+                SUPPORTS_MACCATALYST = NO;
+                SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+                SWIFT_EMIT_LOC_STRINGS = YES;
+                TARGETED_DEVICE_FAMILY = 7;
+            };
+            name = Debug;
+        };
+        A70000000000000000000004 /* Release */ = {
+            isa = XCBuildConfiguration;
+            buildSettings = {
+                CODE_SIGN_STYLE = Automatic;
+                CURRENT_PROJECT_VERSION = 1;
+                ENABLE_PREVIEWS = YES;
+                GENERATE_INFOPLIST_FILE = NO;
+                INFOPLIST_FILE = Info.plist;
+                LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+                MARKETING_VERSION = 1.0;
+                PRODUCT_BUNDLE_IDENTIFIER = edu.ece6001.AVPLearn;
+                PRODUCT_NAME = "$(TARGET_NAME)";
+                SUPPORTED_PLATFORMS = "xros xrsimulator";
+                SUPPORTS_MACCATALYST = NO;
+                SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+                SWIFT_EMIT_LOC_STRINGS = YES;
+                TARGETED_DEVICE_FAMILY = 7;
+            };
+            name = Release;
+        };
+
+        A80000000000000000000001 = {
+            isa = XCConfigurationList;
+            buildConfigurations = (A70000000000000000000001 /* Debug */, A70000000000000000000002 /* Release */,);
+            defaultConfigurationIsVisible = 0;
+            defaultConfigurationName = Release;
+        };
+        A80000000000000000000002 = {
+            isa = XCConfigurationList;
+            buildConfigurations = (A70000000000000000000003 /* Debug */, A70000000000000000000004 /* Release */,);
+            defaultConfigurationIsVisible = 0;
+            defaultConfigurationName = Release;
+        };
+    };
+    rootObject = A60000000000000000000001 /* Project object */;
+}
