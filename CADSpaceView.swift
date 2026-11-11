@@ -9,29 +9,36 @@ struct CADSpaceView: View {
 enum CADViewAngle: String, CaseIterable, Identifiable {
     case isometric, front, top, right
     var id: String { rawValue }
-    var title: String { rawValue.capitalized }
-    fileprivate var rotation: simd_quatf {
+    var title: String { self == .isometric ? "3D" : rawValue.capitalized }
+    /// Turn about the vertical axis, in radians. Positive swings the front of the model to the right.
+    var yaw: Float {
         switch self {
-        case .isometric:
-            return simd_quatf(angle: .pi / 6, axis: [1, 0, 0]) * simd_quatf(angle: -.pi / 5, axis: [0, 1, 0])
-        case .front: return simd_quatf(angle: 0, axis: [0, 1, 0])
-        case .top: return simd_quatf(angle: .pi / 2, axis: [1, 0, 0])
-        case .right: return simd_quatf(angle: -.pi / 2, axis: [0, 1, 0])
+        case .isometric: -.pi / 5
+        case .front, .top: 0
+        case .right: -.pi / 2
         }
+    }
+    /// Tilt toward the viewer, in radians. A quarter turn looks straight down.
+    var pitch: Float {
+        switch self {
+        case .isometric: .pi / 6
+        case .front, .right: 0
+        case .top: .pi / 2
+        }
+    }
+    static func rotation(yaw: Float, pitch: Float) -> simd_quatf {
+        simd_quatf(angle: pitch, axis: [1, 0, 0]) * simd_quatf(angle: yaw, axis: [0, 1, 0])
     }
 }
 
-private struct CADRenderSignature: Component {
-    var kind: String
-    var bore: Float
-}
+private struct CADRenderSignature: Component { var key: String }
+private struct CADMaterialSignature: Component { var value: String }
 private struct CADGridSignature: Component { var value: String }
 private struct CADSelectionSignature: Component { var value: String }
 
 /// Reference storage avoids mutating SwiftUI-observed state from a RealityView update.
 private final class CADFramingState {
     var visibleIDs: Set<UUID> = []
-    var angle: CADViewAngle?
     var request = Int.min
     var bounds: (min: SIMD3<Float>, max: SIMD3<Float>)?
 }
@@ -40,7 +47,8 @@ private final class CADFramingState {
 struct CADSceneView: View {
     @Environment(CADModel.self) private var cad
     let immersive: Bool
-    var angle: CADViewAngle = .isometric
+    var yaw: Float = CADViewAngle.isometric.yaw
+    var pitch: Float = CADViewAngle.isometric.pitch
     var zoom: Float = 1
     var showDimensions = true
     var fitRequest = 0
@@ -56,7 +64,7 @@ struct CADSceneView: View {
                 root.name = "cad-root"
                 Self.sync(root, with: cad, showDimensions: showDimensions, immersive: immersive)
                 content.add(root)
-                Self.frame(root, shapes: cad.shapes, immersive: immersive, angle: angle, zoom: zoom,
+                Self.frame(root, shapes: cad.shapes, immersive: immersive, yaw: yaw, pitch: pitch, zoom: zoom,
                            viewport: content.convert(geometry.frame(in: .local), from: .local, to: .scene),
                            framing: framing, fitRequest: fitRequest)
             } update: { content in
@@ -64,7 +72,7 @@ struct CADSceneView: View {
                 Self.sync(root, with: cad, showDimensions: showDimensions, immersive: immersive)
                 // Freeze framing while dragging so the coordinate system does not move under the hand.
                 if !isManipulating {
-                    Self.frame(root, shapes: cad.shapes, immersive: immersive, angle: angle, zoom: zoom,
+                    Self.frame(root, shapes: cad.shapes, immersive: immersive, yaw: yaw, pitch: pitch, zoom: zoom,
                                viewport: content.convert(geometry.frame(in: .local), from: .local, to: .scene),
                            framing: framing, fitRequest: fitRequest)
                 }
@@ -97,7 +105,7 @@ struct CADSceneView: View {
                     .allowsHitTesting(false)
             }
         }
-        .accessibilityLabel(immersive ? "Life-size CAD workspace" : "\(angle.title) CAD viewport")
+        .accessibilityLabel(immersive ? "Life-size CAD workspace" : "CAD viewport")
         .accessibilityHint("Select a visible part to inspect it. Unlocked parts can be dragged or resized; numeric controls provide precise placement.")
     }
 
@@ -159,29 +167,46 @@ struct CADSceneView: View {
                 entity.components.set(InputTargetComponent())
                 root.addChild(entity)
             }
-            let old = entity.components[CADRenderSignature.self]
-            if old?.kind != shape.kind.rawValue || (shape.kind == .tube && old?.bore != shape.boreRatio) {
-                entity.model = ModelComponent(mesh: CADMeshLibrary.mesh(for: shape), materials: [])
+            // Meshes are built at true size, so any change of size or feature needs a new one.
+            let key = CADMeshLibrary.key(shape)
+            let selected = shape.id == cad.selectedID
+            let look = "\(shape.colorIndex)-\(selected)"
+            if entity.components[CADRenderSignature.self]?.key != key {
+                entity.model = ModelComponent(mesh: CADMeshLibrary.mesh(for: shape), materials: [material(for: shape, selected: selected)])
                 if let shapes = CADMeshLibrary.collisionShapes(for: shape) {
                     entity.components.set(CollisionComponent(shapes: shapes))
                 } else {
                     entity.generateCollisionShapes(recursive: false)
                 }
-                entity.components.set(CADRenderSignature(kind: shape.kind.rawValue, bore: shape.boreRatio))
+                entity.components.set(CADRenderSignature(key: key))
+                entity.components.set(CADMaterialSignature(value: look))
+            } else if entity.components[CADMaterialSignature.self]?.value != look {
+                entity.model?.materials = [material(for: shape, selected: selected)]
+                entity.components.set(CADMaterialSignature(value: look))
             }
             entity.position = shape.position
-            entity.scale = shape.dimensions / SIMD3<Float>(repeating: 0.1)
+            entity.scale = .one
             entity.orientation = shape.rotationQuaternion
-            let selected = shape.id == cad.selectedID
-            entity.model?.materials = [SimpleMaterial(color: CADPalette.color(shape.colorIndex, selected: selected), isMetallic: false)]
         }
         updateGrid(root, shapes: visible, spacing: cad.gridSpacing)
         updateSelection(root, selected: cad.selected.flatMap { $0.isHidden ? nil : $0 },
                         showDimensions: showDimensions, immersive: immersive)
     }
 
+    /// Paint is a matte dielectric; metals reflect their surroundings. A selected part is lifted toward white.
     @MainActor
-    private static func frame(_ root: Entity, shapes: [CADShape], immersive: Bool, angle: CADViewAngle,
+    static func material(for shape: CADShape, selected: Bool) -> any RealityKit.Material {
+        let finish = CADPalette.finish(shape.colorIndex)
+        var material = PhysicallyBasedMaterial()
+        material.baseColor = .init(tint: CADPalette.color(shape.colorIndex, selected: selected))
+        // Short of fully metallic, so a part still reads in a dim room with little to reflect.
+        material.metallic = .init(floatLiteral: finish.isMetal ? 0.75 : 0)
+        material.roughness = .init(floatLiteral: finish.roughness)
+        return material
+    }
+
+    @MainActor
+    private static func frame(_ root: Entity, shapes: [CADShape], immersive: Bool, yaw: Float, pitch: Float,
                               zoom: Float, viewport: BoundingBox, framing: CADFramingState, fitRequest: Int) {
         if immersive {
             root.position = [0, 1, -1]
@@ -189,43 +214,35 @@ struct CADSceneView: View {
             root.scale = .one
             return
         }
-        let rotation = angle.rotation
         let visible = shapes.filter { !$0.isHidden }
         let ids = Set(visible.map(\.id))
-        if framing.bounds == nil || framing.visibleIDs != ids || framing.angle != angle || framing.request != fitRequest {
-            framing.bounds = bounds(of: visible, rotatedBy: rotation)
+        if framing.bounds == nil || framing.visibleIDs != ids || framing.request != fitRequest {
+            framing.bounds = bounds(of: visible)
             framing.visibleIDs = ids
-            framing.angle = angle
             framing.request = fitRequest
         }
         // Keep camera framing stable through size/position/rotation edits, so the edit stays visible.
         guard let bounds = framing.bounds else { return }
-        let extent = max(bounds.max - bounds.min, SIMD3<Float>(repeating: 0.005))
-        let available = max(viewport.extents, SIMD3<Float>(repeating: 0.02))
-        let fit = min(available.x / extent.x, available.y / extent.y) * 0.76
-        let scale = max(0.001, fit * min(3, max(0.25, zoom)))
+        // Fit the sphere around the design, not its outline: the model then keeps one size while it is orbited.
         let center = (bounds.min + bounds.max) / 2
+        let radius = max(simd_length(bounds.max - bounds.min) / 2, 0.0025)
+        let available = max(viewport.extents, SIMD3<Float>(repeating: 0.02))
+        let scale = max(0.001, min(available.x, available.y) / (2 * radius) * 0.9 * min(3, max(0.25, zoom)))
+        let rotation = CADViewAngle.rotation(yaw: yaw, pitch: pitch)
+        let turned = rotation.act(center)
         root.scale = .init(repeating: scale)
         root.orientation = rotation
-        root.position = [viewport.center.x - center.x * scale,
-                         viewport.center.y - center.y * scale,
-                         viewport.center.z - bounds.max.z * scale + 0.005]
+        root.position = [viewport.center.x - turned.x * scale,
+                         viewport.center.y - turned.y * scale,
+                         viewport.center.z - (turned.z + radius) * scale + 0.005]
     }
 
-    static func bounds(of shapes: [CADShape], rotatedBy rotation: simd_quatf = simd_quatf(angle: 0, axis: [0, 1, 0])) -> (min: SIMD3<Float>, max: SIMD3<Float>) {
+    static func bounds(of shapes: [CADShape]) -> (min: SIMD3<Float>, max: SIMD3<Float>) {
         guard !shapes.isEmpty else { return ([-0.15, 0, -0.15], [0.15, 0.3, 0.15]) }
         var lower = SIMD3<Float>(repeating: .infinity), upper = SIMD3<Float>(repeating: -.infinity)
         for shape in shapes {
-            let half = shape.dimensions / 2
-            for x in [Float(-1), Float(1)] {
-                for y in [Float(-1), Float(1)] {
-                    for z in [Float(-1), Float(1)] {
-                        let point = rotation.act(shape.rotationQuaternion.act(half * SIMD3<Float>(x, y, z)) + shape.position)
-                        lower = min(lower, point)
-                        upper = max(upper, point)
-                    }
-                }
-            }
+            lower = min(lower, shape.position - shape.worldHalfExtents)
+            upper = max(upper, shape.position + shape.worldHalfExtents)
         }
         return (lower, upper)
     }

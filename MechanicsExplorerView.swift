@@ -26,8 +26,9 @@ struct MechanicsExplorerView: View {
                     ForEach(EngSystem.library) { system in
                         StudyCard(tint: .orange) {
                             VStack(alignment: .leading, spacing: 14) {
-                                Image(systemName: system.id == "piston" ? "engine.combustion" : "gearshape.2")
-                                    .font(.system(size: 36)).foregroundStyle(.orange)
+                                CADPreviewImage(id: system.id, pixels: 520) { system.previewItems }
+                                    .frame(height: 190)
+                                    .background(.black.opacity(0.22), in: RoundedRectangle(cornerRadius: 14))
                                 Text(system.title).font(.title3.bold())
                                 Text(system.summary).font(.subheadline).foregroundStyle(.secondary)
                                 Text("Explode the assembly, inspect each part, and complete a three-part identification challenge.")

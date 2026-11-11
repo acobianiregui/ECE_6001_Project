@@ -2,14 +2,18 @@ import SwiftUI
 
 struct TodayView: View {
     @Environment(LearningStore.self) private var learning
+    @Environment(CADModel.self) private var cad
     let openLesson: (Lesson) -> Void
     let openDestination: (LearningDestination) -> Void
     let review: () -> Void
+    /// The starter shown on the studio card while the workplane is empty.
+    private let featured = CADTemplate.shaftSupport
 
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 26) {
-                StudyHeading(eyebrow: "A little progress, every day", title: "Make engineering click.", subtitle: "Understand an idea. Work through a problem. See it come to life.")
+                StudyHeading(eyebrow: "A little progress, every day", title: "Make engineering click.", subtitle: "Design a real part. Understand why it works. See it come to life.")
+                studioCard
                 if let next = learning.nextLesson {
                     continueCard(next)
                 } else {
@@ -57,6 +61,46 @@ struct TodayView: View {
         .navigationTitle("Today")
         .toolbarTitleDisplayMode(.inline)
     }
+    /// The CAD studio leads the page: a picture of the learner's own design, or of a starter to open.
+    private var studioCard: some View {
+        let visible = cad.shapes.filter { !$0.isHidden }
+        let working = !visible.isEmpty
+        let passed = CADChallenge.allCases.filter { $0.checks(in: cad.shapes).allSatisfy(\.1) }.count
+        return HStack(spacing: 26) {
+            CADPreviewImage(shapes: working ? visible : featured.shapes, pixels: 640)
+                .frame(width: 300, height: 220)
+                .background(.black.opacity(0.22), in: RoundedRectangle(cornerRadius: 22))
+            VStack(alignment: .leading, spacing: 12) {
+                Text("CAD STUDIO").font(.caption.weight(.semibold)).tracking(2).foregroundStyle(LearningStyle.teal)
+                Text(working ? "Pick up your design." : "Design real parts in 3D.")
+                    .font(.system(size: 28, weight: .bold, design: .rounded))
+                Text(working
+                     ? "\(visible.count) \(visible.count == 1 ? "part" : "parts") on your workplane, saved automatically. Measure them, change them, or view them at life size."
+                     : "Start from a real mechanism such as this \(featured.title.lowercased()): bolts, bearings, gears and shafts at true size. Take it apart, measure it, and build your own.")
+                    .font(.subheadline).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+                HStack(spacing: 14) {
+                    Button { openDestination(.cad) } label: {
+                        Label(working ? "Continue designing" : "Open the studio", systemImage: "square.stack.3d.up")
+                    }
+                    .buttonStyle(.borderedProminent)
+                    if !working {
+                        Button("Start with this assembly") {
+                            cad.loadTemplate(featured)
+                            cad.select(nil)
+                            openDestination(.cad)
+                        }
+                    }
+                }
+                Label("\(passed) of \(CADChallenge.allCases.count) build challenges passed", systemImage: "target")
+                    .font(.caption).foregroundStyle(.secondary)
+            }
+            Spacer(minLength: 0)
+        }
+        .padding(24)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(LinearGradient(colors: [LearningStyle.teal.opacity(0.18), .white.opacity(0.03)], startPoint: .topLeading, endPoint: .bottomTrailing), in: RoundedRectangle(cornerRadius: 26))
+        .overlay(RoundedRectangle(cornerRadius: 26).strokeBorder(LearningStyle.teal.opacity(0.25)))
+    }
     private func continueCard(_ lesson: Lesson) -> some View {
         HStack(spacing: 26) {
             VStack(alignment: .leading, spacing: 14) {
@@ -84,7 +128,8 @@ struct TodayView: View {
         .overlay(RoundedRectangle(cornerRadius: 26).strokeBorder(lesson.track.tint.opacity(0.2)))
     }
     @ViewBuilder private var trackCards: some View {
-        ForEach(LearningTrack.allCases) { track in
+        // Design leads: it is the path the studio builds on.
+        ForEach([LearningTrack.design, .mechanics, .circuits]) { track in
             let lessons = Curriculum.lessons.filter { $0.track == track }
             let completed = lessons.filter(learning.isComplete).count
             Button {

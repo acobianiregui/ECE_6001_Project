@@ -17,5 +17,7 @@ build/checks/cad
 xcrun swiftc "${swift_flags[@]}" MechanicsModel.swift Tests/MechanicsChecks.swift -o build/checks/mechanics
 build/checks/mechanics
 xcrun swiftc "${swift_flags[@]}" CADModels.swift CADTemplates.swift CADMeshLibrary.swift CADExport.swift Tests/CADGeometryChecks.swift -o build/checks/geometry
+rm -f build/checks/cad-*.obj
 build/checks/geometry
-python3 Tests/check_obj_geometry.py build/checks/cad-actual-*.obj build/checks/cad-review-shaftSupport.obj build/checks/cad-review-angleBracket.obj
+python3 Tests/check_obj_geometry.py build/checks/cad-actual-*.obj build/checks/cad-review-*.obj > build/checks/obj-audit.txt
+grep '^PASS' build/checks/obj-audit.txt

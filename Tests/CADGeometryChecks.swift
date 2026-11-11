@@ -59,23 +59,34 @@ typealias UIColor = NSColor
    }
    try CADOBJDocument(shapes:shapes).text.write(toFile:"build/checks/cad-review-\(template.rawValue).obj",atomically:true,encoding:.utf8)
   }
-  let support = CADTemplate.shaftSupport.shapes
-  let base = support.first { $0.name == "Base plate" }!
-  let pedestal = support.first { $0.name == "Front pedestal" }!
-  let collar = support.first { $0.name == "Front hollow collar" }!
-  let shaft = support.first { $0.kind == .cylinder }!
-  near(base.position.y + base.halfHeight, pedestal.position.y - pedestal.halfHeight, "Pedestal touches base")
-  near(pedestal.position.y + pedestal.halfHeight, collar.position.y - collar.halfHeight, "Collar touches pedestal")
-  near(collar.position.y, shaft.position.y, "Collar and shaft axes align vertically")
-  near(collar.position.x, shaft.position.x, "Collar and shaft axes align horizontally")
-  near((collar.dimensions.x*collar.boreRatio-shaft.dimensions.x)/2,0.003,"Radial clearance is3mm")
-  let bracket = CADTemplate.angleBracket.shapes
-  let plate = bracket.first { $0.name == "Horizontal base plate" }!
-  let upright = bracket.first { $0.name == "Upright plate" }!
-  let gusset = bracket.first { $0.name == "Front reinforcing block" }!
-  near(plate.position.y + plate.halfHeight, upright.position.y - upright.halfHeight, "Upright touches bracket base")
-  near(plate.position.y + plate.halfHeight, gusset.position.y - gusset.halfHeight, "Block touches base")
-  near(upright.position.x+upright.worldHalfExtents.x,gusset.position.x-gusset.worldHalfExtents.x,"Block touches upright")
+  let drive = CADTemplate.shaftSupport.shapes
+  let base = drive.first { $0.name == "Base plate" }!
+  let block = drive.first { $0.name == "Front pillow block" }!
+  let sleeve = drive.first { $0.name == "Front bearing sleeve" }!
+  let shaft = drive.first { $0.kind == .cylinder }!
+  near(base.position.y + base.halfHeight, block.position.y - block.halfHeight, "Pillow block touches base")
+  near(block.position.y + block.blockBoreCenterY, shaft.position.y, "Housing bore and shaft axes align vertically")
+  near(sleeve.position.y, shaft.position.y, "Sleeve and shaft axes align vertically")
+  near(sleeve.position.x, shaft.position.x, "Sleeve and shaft axes align horizontally")
+  near((sleeve.featureDiameter!-shaft.dimensions.x)/2,0.0005,"Radial clearance is 0.5mm")
+  // The mesh is built at true size: a mesh's extent must equal the part's stated dimensions.
+  for shape in CADTemplate.allCases.flatMap(\.shapes) {
+   let mesh = CADMeshLibrary.geometry(for: shape)
+   var low = SIMD3<Float>(repeating: .infinity), high = SIMD3<Float>(repeating: -.infinity)
+   for point in mesh.positions { low = simd_min(low, point); high = simd_max(high, point) }
+   // Gear teeth only reach the outside diameter where a tooth points along an axis.
+   let slack: Float = shape.kind == .gear ? 0.02 : 0.00001
+   for axis in 0..<3 {
+    let size = (high-low)[axis], stated = shape.dimensions[axis]
+    precondition(size <= stated + 0.000002 && size >= stated * (1 - slack), "\(shape.name) mesh extent \(size) != \(stated) on axis \(axis)")
+   }
+   precondition(mesh.volume > 0 && mesh.volume < shape.dimensions.x*shape.dimensions.y*shape.dimensions.z, "\(shape.name) volume lies inside its bounds")
+  }
+  let cube = CADMeshLibrary.geometry(for: CADShape(kind: .box, position: .zero, dimensions: [0.2,0.2,0.2]))
+  precondition(abs(cube.volume - 0.008) < 0.008*0.002, "Bevels remove well under 1% of a 200 mm cube")
+  let bar = CADMeshLibrary.geometry(for: CADShape(kind: .cylinder, position: .zero, dimensions: [0.036,0.29,0.036]))
+  let round = Float.pi*0.018*0.018*0.29
+  precondition(bar.volume < round && bar.volume > round*0.995, "A 64-sided, chamfered shaft is within 0.5% of a 36 mm round bar")
   cad.loadTemplate(.shaftSupport)
   let loaded = cad.shapes
   cad.undo()
@@ -84,14 +95,23 @@ typealias UIColor = NSColor
   precondition(cad.shapes == loaded, "Template load can be redone")
   var customShapes: [CADShape] = []
   for (index, kind) in ShapeKind.allCases.enumerated() {
-   let shape = CADShape(kind: kind, position: [Float(index) * 0.17, 0.20, -0.13], name: "Actual \(kind.rawValue)", dimensions: [0.12, 0.08, 0.06], rotationDegrees: [60,36,25.714285], boreRatio: 0.6)
+   let shape = CADShape(kind: kind, position: [Float(index) * 0.17 - 0.8, 0.20, -0.13], name: "Actual \(kind.rawValue)", dimensions: [0.12, 0.08, 0.06], rotationDegrees: [60,36,25.714285], boreRatio: 0.6)
    customShapes.append(shape)
    try CADOBJDocument(shapes:[shape]).text.write(toFile:"build/checks/cad-actual-\(kind.rawValue).obj",atomically:true,encoding:.utf8)
   }
+  // Awkward proportions and feature limits must still give closed solids.
+  var stress: [CADShape] = []
+  let extremes: [(SIMD3<Float>, Float, Int)] = [([0.3,0.004,0.02],0.1,8), ([0.004,0.2,0.004],0.9,60), ([0.004,0.004,0.004],0.5,13), ([1,1,1],0.9,60), ([0.05,0.05,0.3],0.1,24)]
+  for kind in ShapeKind.allCases {
+   for (index, extreme) in extremes.enumerated() {
+    stress.append(CADShape(kind: kind, position: [0,0.5,0], name: "Stress \(kind.rawValue) \(index)", dimensions: extreme.0, boreRatio: extreme.1, teeth: extreme.2))
+   }
+  }
+  try CADOBJDocument(shapes:stress).text.write(toFile:"build/checks/cad-actual-stress.obj",atomically:true,encoding:.utf8)
   let hidden = CADShape(kind: .box, position: .zero, name: "hidden-must-not-export", isHidden: true)
   let combined = CADOBJDocument(shapes:customShapes+[hidden]).text
   precondition(!combined.contains("hidden_must_not_export"), "Hidden geometry must be excluded")
   try combined.write(toFile:"build/checks/cad-actual-combined.obj",atomically:true,encoding:.utf8)
-  print("PASS independent actual-model review: arbitrary dimensions, display units, compound bounds/floor, locks/hide, persistence/snapshots, template contacts/clearance, undo/redo.")
+  print("PASS independent actual-model review: arbitrary dimensions, display units, compound bounds/floor, locks/hide, persistence/snapshots, template contacts/clearance, true-size meshes and volumes, undo/redo.")
  }
 }

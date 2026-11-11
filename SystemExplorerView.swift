@@ -40,12 +40,6 @@ struct SystemExplorerView: View {
                 entity.name = part.id
                 entity.position = part.home + explode * part.explode
                 if part.tiltedOnX { entity.orientation = simd_quatf(angle: .pi / 2, axis: [1, 0, 0]) }
-                if system.id == "gears", part.id == "g1" || part.id == "g2" {
-                    Self.addTeeth(to: entity, part: part, count: part.id == "g1" ? 12 : 36)
-                }
-                if system.id == "piston", part.id == "crank" || part.id == "flywheel" {
-                    Self.addRotationMarker(to: entity, part: part)
-                }
                 // A transparent outer cylinder must not intercept taps on every inner part.
                 if !part.transparent {
                     entity.components.set(InputTargetComponent())
@@ -153,7 +147,7 @@ struct SystemExplorerView: View {
                 }
                 .buttonStyle(.borderedProminent).tint(.orange)
             }
-            Text("Simplified assembly · illustrative geometry and motion")
+            Text("Teaching model · proportions are simplified, motion is ideal")
                 .font(.caption2).foregroundStyle(.tertiary)
         }
         .frame(width: 430)
@@ -196,37 +190,6 @@ struct SystemExplorerView: View {
             return material
         }
         return SimpleMaterial(color: color, isMetallic: !selected)
-    }
-    /// Round parts look identical while spinning, so give the crank its throw pin and the flywheel a lug.
-    /// Local −Z is world +Y after the 90° tilt, i.e. the top-dead-centre direction.
-    @MainActor
-    private static func addRotationMarker(to entity: ModelEntity, part: SystemPart) {
-        let material = Self.material(for: part, selected: false)
-        let marker: ModelEntity
-        if part.id == "crank" {
-            marker = ModelEntity(mesh: .generateSphere(radius: 0.012), materials: [material])
-            marker.position = [0, 0, -0.025]
-        } else {
-            marker = ModelEntity(mesh: .generateBox(width: 0.018, height: 0.04, depth: 0.03, cornerRadius: 0.004), materials: [material])
-            marker.position = [0, 0, -0.078]
-        }
-        marker.name = part.id
-        marker.components.set(InputTargetComponent())
-        entity.addChild(marker)
-    }
-    @MainActor
-    private static func addTeeth(to entity: ModelEntity, part: SystemPart, count: Int) {
-        guard case let .cylinder(height, radius) = part.shape else { return }
-        let material = Self.material(for: part, selected: false)
-        for index in 0..<count {
-            let angle = Float(index) * 2 * .pi / Float(count)
-            let tooth = ModelEntity(mesh: .generateBox(width: 0.009, height: height, depth: 0.007), materials: [material])
-            tooth.name = part.id
-            tooth.position = [radius * cos(angle), 0, radius * sin(angle)]
-            tooth.orientation = simd_quatf(angle: -angle, axis: [0, 1, 0])
-            tooth.components.set(InputTargetComponent())
-            entity.addChild(tooth)
-        }
     }
 }
 

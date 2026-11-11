@@ -1,8 +1,12 @@
 import SwiftUI
 
 enum LearningDestination: String, CaseIterable, Identifiable {
-    case today, lessons, explorer, cad, lab, progress
+    case today, cad, explorer, lab, lessons, progress
     var id: String { rawValue }
+    /// Sidebar groups: the overview, the places you make things, and the places you study.
+    static let groups: [(title: String?, items: [LearningDestination])] = [
+        (nil, [.today]), ("Make", [.cad, .explorer, .lab]), ("Study", [.lessons, .progress])
+    ]
     var title: String {
         switch self {
         case .today: "Today"
@@ -73,7 +77,7 @@ struct HomeView: View {
     }
 
     private var sidebar: some View {
-        VStack(alignment: .leading, spacing: 26) {
+        VStack(alignment: .leading, spacing: 14) {
             HStack(spacing: 12) {
                 Image(systemName: "graduationcap.fill")
                     .font(.title2).foregroundStyle(LearningStyle.teal)
@@ -85,24 +89,31 @@ struct HomeView: View {
                 }
             }
             .padding(.top, 12)
-            VStack(spacing: 6) {
-                ForEach(LearningDestination.allCases) { item in
-                    Button { destination = item } label: {
-                        HStack(spacing: 12) {
-                            Image(systemName: item.symbol).frame(width: 22)
-                            Text(item.title).font(.subheadline.weight(destination == item ? .semibold : .regular))
-                            Spacer(minLength: 0)
-                            if item == .progress && !learning.dueQuestions.isEmpty {
-                                Text("\(learning.dueQuestions.count)").font(.caption2.bold()).padding(5).background(.orange.opacity(0.2), in: Circle())
-                            }
-                        }
-                        .foregroundStyle(destination == item ? LearningStyle.teal : .white.opacity(0.75))
-                        .padding(.horizontal, 14).padding(.vertical, 13)
-                        .background(destination == item ? LearningStyle.teal.opacity(0.13) : .clear, in: RoundedRectangle(cornerRadius: 13))
-                        .contentShape(RoundedRectangle(cornerRadius: 13))
+            VStack(alignment: .leading, spacing: 4) {
+                ForEach(LearningDestination.groups, id: \.items) { group in
+                    if let title = group.title {
+                        Text(title.uppercased()).font(.system(size: 10, weight: .semibold)).tracking(1.4)
+                            .foregroundStyle(.tertiary).padding(.leading, 14).padding(.top, 12)
                     }
-                    .buttonStyle(.plain)
-                    .accessibilityAddTraits(destination == item ? .isSelected : [])
+                    ForEach(group.items) { item in
+                        Button { destination = item } label: {
+                            HStack(spacing: 12) {
+                                Image(systemName: item.symbol).frame(width: 22)
+                                Text(item.title).font(.subheadline.weight(destination == item ? .semibold : .regular))
+                                Spacer(minLength: 0)
+                                if item == .progress && !learning.dueQuestions.isEmpty {
+                                    Text("\(learning.dueQuestions.count)").font(.caption2.bold()).padding(5).background(.orange.opacity(0.2), in: Circle())
+                                }
+                            }
+                            .foregroundStyle(destination == item ? LearningStyle.teal : .white.opacity(0.75))
+                            .padding(.horizontal, 14).padding(.vertical, 12)
+                            .background(destination == item ? LearningStyle.teal.opacity(0.13) : .clear, in: RoundedRectangle(cornerRadius: 13))
+                            .contentShape(RoundedRectangle(cornerRadius: 13))
+                            .hoverEffect()
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityAddTraits(destination == item ? .isSelected : [])
+                    }
                 }
             }
             Spacer(minLength: 12)
@@ -119,7 +130,7 @@ struct HomeView: View {
                     Text("\(learning.completedCount)/9").font(.caption).foregroundStyle(.secondary)
                 }
                 ProgressView(value: learning.completionFraction)
-                Text("Learn a little. Build something.").font(.caption2).foregroundStyle(.secondary)
+                Text("Learn a little. Design something.").font(.caption2).foregroundStyle(.secondary)
             }.padding(14).background(.white.opacity(0.04), in: RoundedRectangle(cornerRadius: 14))
         }
         .padding(18)
